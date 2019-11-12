@@ -117,11 +117,14 @@ class Database:
                     for n in range(p+1,r):
                         xit = np.hstack((xit,pad_pr[n]))
 
-                    if xit.sum() != 0:
+                    if xit.sum() == 0 and not testing:
+                        pass
                         # if the database is meant for training, write to file only if profile is not empty
+                    else:
                         # otherwise, also consider the empty profile (predict a class for points that map to the origin)
                         line = str(class_mapping[pad_ss[q]])
                         ctr = 1
+                        # this for cycle takes care of the sparse notation
                         for elem in xit:
                             if elem != 0:
                                 line = '{0} {1}:{2}'.format(line, ctr, elem)
