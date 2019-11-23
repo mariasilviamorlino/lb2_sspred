@@ -1,17 +1,10 @@
-'''paths
-/home/mary/bioinfo/LB2/project/jpred4.list.txt
-/home/mary/bioinfo/LB2/project/dssp
-/home/mary/bioinfo/LB2/project/profiles/jpred_profiles
-GOR method interacts with database objects as defined in dataset_preprocess.py'''
+'''
+In this implementation, the GOR model interacts with database objects as defined in dataset_preprocess.py'''
 
 import numpy as np
 
 indexing = 'HE-'
 
-
-# def pad(obj, windowsize):
-#     padding = np.zeros((windowsize//2,20))
-#     return np.vstack((padding,obj,padding))
 
 
 class Gor:
@@ -46,21 +39,21 @@ class Gor:
                     self.res_e += pad_pr[p:r]
                 elif pad_ss[q] == '-':
                     self.res_c += pad_pr[p:r]
-                size += len(dssp)
                 p, q, r = p+1, q+1, r+1
-        # normalize counts for dataset size
+            size += len(dssp)
+        # normalize counts for dataset size (transform counts in frequencies)
+        # print("\n\nCounts:\n{0}".format(self)) OK
         self.res_h = self.res_h/size
         self.res_e = self.res_e/size
         self.res_c = self.res_c/size
-        # transform the normalized counts in information values
+        # use the frequencies to compute information values
         tot_res_count = self.res_h + self.res_e + self.res_c
-        self.res_h = self.res_h / (tot_res_count*self.res_h.sum())
+        self.res_h = self.res_h / (tot_res_count*(self.res_h.sum()/tot_res_count.sum()))
         self.res_h = np.log(self.res_h)
-        self.res_e = self.res_e / (tot_res_count*self.res_e.sum())
+        self.res_e = self.res_e / (tot_res_count*(self.res_e.sum()/tot_res_count.sum()))
         self.res_e = np.log(self.res_e)
-        self.res_c = self.res_c / (tot_res_count*self.res_c.sum())
+        self.res_c = self.res_c / (tot_res_count*(self.res_c.sum()/tot_res_count.sum()))
         self.res_c = np.log(self.res_c)
-#        return self
 
 
     def predict(self, datab, outfile=False):
@@ -69,7 +62,7 @@ class Gor:
         pad the profile
         for every window: multiply profile to self.h self.e self.c and select the max'''
         padding = np.zeros((self.w//2,20))
-        predss = 'HE-'
+        predss = '-HE'
         if outfile: out = open(outfile, 'w')
         for i in datab:
             # preprocess input profile and dssp
@@ -86,39 +79,14 @@ class Gor:
                 pred = pred + predss[l.index(max(l))]
                 p, q, r = p+1, q+1, r+1
             i[3] = pred
+            if len(pred) != len(i[1]):
+                print(i[2])
+                print(len(pred), len(i[1]))
+                print(pssm)
+                print("AH E COSI' FAI IL COSI'")
+                raise SystemExit
             if outfile: out.write('>{0}\n{1}\n\n'.format(i[2], i[3]))
         return datab
-
-
-
-if __name__ == '__main__':
-    model = Gor()
-
-    cavia = np.loadtxt('/home/mary/bioinfo/LB2/project/profiles/jpred_profiles/d3ag3g_.fasta.pssm')
-    with open('/home/mary/bioinfo/LB2/project/dssp/d3ag3g_.dssp') as dsspfile:
-        dsspseq = dsspfile.readlines()[1].strip()
-#    dsspseq = 8*' '+dsspseq+8*' '
-#    cavia = np.vstack((np.zeros((8,20)), cavia, np.zeros((8,20))))
-#    print(model)
-
-#     with open('/home/mary/bioinfo/LB2/project/jpred4.list.txt') as idlist:
-#         for jid in idlist:
-#             jid = jid.strip()
-#             try:
-#                 pr = np.loadtxt('/home/mary/bioinfo/LB2/project/profiles/jpred_profiles/'+jid+'.fasta.pssm')
-#             except:
-#                 pass
-#             else:
-# #                print(pr.shape)
-#                 ss = open('/home/mary/bioinfo/LB2/project/dssp/'+jid+'.dssp').readlines()[1].strip()
-#                 model.train(pr,ss)
-# #                print(pr,ss)
-
-    cavia2 = np.loadtxt('/home/mary/bioinfo/LB2/project/profiles/blind_profiles/4UFQ_A.fasta.pssm')
-
-# TODO:
-# fix the predict method so that it takes a Database object too
-# test the whole thing and train the model in cross validation
 
 
 
