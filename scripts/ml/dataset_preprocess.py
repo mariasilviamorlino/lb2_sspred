@@ -1,16 +1,15 @@
 '''
-A toolbox for preprocessing data, both for GOR and SVM training
-Data structure for the dataset: list of lists with the format (profile, sec_struct)
-profile = numpy array; ss = string
+A class for preprocessing data, both for GOR and SVM training, via Database objects
+Data structure for the dataset: list of lists with the format [profile, sec_struct, id, gor_pred, svm_pred]
 
-what is in the toolbox?
-* a function that, given in input a list of IDs and the location of the profiles and sec structs, returns a database
-* a function to transform the database in a suitable way for SVM input
-* a function to pickle and load databases
+Methods:
+* Database initialization (starting from IDs and profile/dssp folders)
+* Svm/Libsvm input generation
+* Addition of libsvm predictions in the correpsondent dataset entries
 
 The Database objects have the following structure:
 self.db --> list of lists
-self.legenda --> a dict to tell you to which info each position in the inner lists corresponds
+self.legenda --> a dict showing to which info each position in the inner lists corresponds
 self.indexing --> a dict that links the indices of the outer lists to the ids of the inner lists
 '''
 
@@ -121,7 +120,7 @@ class Database:
                         pass
                         # if the database is meant for training, write to file only if profile is not empty
                     else:
-                        # otherwise, also consider the empty profile (predict a class for points that map to the origin)
+                        # otherwise, also consider the empty profile (consider points that map to the origin as points to be predicted)
                         line = str(class_mapping[pad_ss[q]])
                         ctr = 1
                         # this for cycle takes care of the sparse notation
@@ -148,17 +147,20 @@ class Database:
                     ctr += 1
 
 
-    def add_pred(self, seqid, ss_pred, SVM = True):
-        '''
-        adds a prediction made with GOR
-        seqid: string - id of the sequence/profile/db entry
-        ss_pred: string - prediction of secondary structure
-        kwarg SVM: boolean, default true. If it's true, the prediction is added in the 4th slot of the list
-        '''
-        indx = self.indexing[seqid]
-        self.db[indx][3] = ss_pred
-        pass
-
+    def svmpred(self, svmpred_path):
+        '''Modifies the database object in-place
+        1st argument: path to the file containing predictions'''
+        mapping = {'1': 'H', '2': 'E', '3': '-'}
+        svmpred_file = open(svmpred_path)
+        for entry in self.db:
+            sspred = ''
+            i = 0
+            while i < len(entry[1]):
+                chpred = svmpred_file.readline().strip()
+                sspred = sspred + mapping[chpred]
+                i += 1
+            entry[4] = sspred
+        svmpred_file.close()
 
 
 class dbIterator:
@@ -186,6 +188,3 @@ if __name__ == '__main__':
 
     testdb = Database(idss, profiles_path, dssp_path)
 #    testdb.makelibsvminput(filepath = '/home/mary/bioinfo/LB2/project/libsvm/prova.dat.txt')
-
-# TODO
-# give the dataset a prediction attribute - same n° of items as self.db
