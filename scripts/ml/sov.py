@@ -134,3 +134,12 @@ def multiclass_sov(ypr, yre):
         summ = summ + summation(si)
     sov_tot = (summ * 100)/norm
     return sov_tot
+
+
+if __name__ == '__main__':
+    # testcode: sequences taken from the SOV'99 and SOV_refined articles, for which the reference score is known.
+    ref = '-HHHHHHHHHH-'
+    for i in (['-H-H-H-H-H--', 12.5], ['-HHH-HHH-HH-', 40.6], ['-HH--HHHHH--', 52.3], ['---HHHH-----', 54.4],
+                ['---HHHHH----', 63.2], ['---HHHHHH---', 80.6], ['---HHHHHHH--', 90.3], ['---HHHHHHHH-', 94.4]):
+        pred = i[0]
+        print('my segment overlap: {0}\nreference value: {1}\n'.format(multiclass_sov(pred,ref), i[1]))
