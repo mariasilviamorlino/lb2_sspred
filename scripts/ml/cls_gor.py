@@ -80,10 +80,7 @@ class Gor:
                 p, q, r = p+1, q+1, r+1
             i[3] = pred
             if len(pred) != len(i[1]):
-                print(i[2])
-                print(len(pred), len(i[1]))
-                print(pssm)
-                print("AH E COSI' FAI IL COSI'")
+                print("Error; check the database entry {0}".format(i[2]))
                 raise SystemExit
             if outfile: out.write('>{0}\n{1}\n\n'.format(i[2], i[3]))
         return datab
