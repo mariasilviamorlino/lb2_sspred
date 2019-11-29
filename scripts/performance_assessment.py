@@ -53,6 +53,3 @@ if args.outfile:
         pickle.dump(measures, outhandle)
 else:
     print("Measures of performance:\n{0}".format(measures))
-
-# TODO:
-# produce a script to compute aggregated cv performances
